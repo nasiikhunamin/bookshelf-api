@@ -31,7 +31,6 @@ const addBookHandler = (request, h) => {
     return response;
   }
 
-
   const id = nanoid(16);
   const insertedAt = new Date().toISOString();
   const updatedAt = insertedAt;
@@ -70,9 +69,9 @@ const getAllBooksHandler = () => ({
 });
 
 const getBookByIdHandler = (request, h) => {
-  const { id } = request.params;
+  const { bookId } = request.params;
 
-  const book = books.find((n) => n.id === id);
+  const book = books.find((n) => n.id === bookId);
 
   if (book) {
     return {
@@ -90,4 +89,69 @@ const getBookByIdHandler = (request, h) => {
   response.code(404);
   return response;
 };
-module.exports = { addBookHandler, getAllBooksHandler, getBookByIdHandler };
+
+const editBookByIdHandler = (request, h) => {
+  const { bookId } = request.params;
+
+  const {
+    name,
+    year,
+    author,
+    summary,
+    publisher,
+    pageCount,
+    readPage,
+    reading
+  } = request.payload;
+
+  if (!name) {
+    const response = h.response({
+      status: 'fail',
+      message: 'Gagal memperbarui buku. Mohon isi nama buku',
+    });
+    response.code(400);
+    return response;
+  }
+
+  if (readPage > pageCount) {
+    const response = h.response({
+      status: 'fail',
+      message: 'Gagal memperbarui buku. readPage tidak boleh lebih besar dari pageCount',
+    });
+    response.code(400);
+    return response;
+  }
+
+  const index = books.findIndex((book) => book.id === bookId);
+
+  if (index !== -1) {
+    books[index] = {
+      ...books[index],
+      name,
+      year,
+      author,
+      summary,
+      publisher,
+      pageCount,
+      readPage,
+      reading
+    };
+
+    const response = h.response({
+      status: 'success',
+      message: 'Buku berhasil diperbarui',
+    });
+
+    response.code(200);
+    return response;
+  }
+
+  const response = h.response({
+    status: 'fail',
+    message: 'Gagal memperbarui buku. Id tidak ditemukan',
+  });
+  response.code(404);
+  return response;
+
+};
+module.exports = { addBookHandler, getAllBooksHandler, getBookByIdHandler, editBookByIdHandler };
